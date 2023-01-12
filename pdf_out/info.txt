@@ -1,0 +1,2 @@
+Este directorio contendrá las salidas pdf cuando el script sea utilizadas con la opción -p <palabra-clave>
+cada archivo será renombrado con el tendrá el sigueinte formato <palabra_clave>.pdf
