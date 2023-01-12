@@ -5,9 +5,10 @@ Debes indicar en el script el nombre de tu archivo de notas que tendrá que esta
 file_name = "My Clippings.txt"
 
 Ayuda rápida:	
-solo indique un nombre de autor para la búsqueda o bien:
--b <libro> para libro especifico
--n <palabra> para buscar notas por palabra clave
--a para una lista de autores
--l para una lista de libros
--p <palabra_clave> para crear un pdf con el resultado en el directorio pdf_out
+
+<li>solo indique un nombre de autor para la búsqueda o bien:
+<li>-b <libro> para libro especifico
+<li>-n <palabra> para buscar notas por palabra clave
+<li>-a para una lista de autores
+<li>-l para una lista de libros
+<li>-p <palabra_clave> para crear un pdf con el resultado en el directorio pdf_out
