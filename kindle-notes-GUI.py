@@ -2,13 +2,13 @@
 # coding: utf-8
 # creado por: Antonio Russoniello
 
-import sys
-from pylatex import Document, PageStyle, Head, MiniPage, Foot, LargeText, \
-    MediumText, LineBreak, simple_page_number, NoEscape, NewPage, Command
+from pylatex import Document, simple_page_number, NoEscape, Command
 from pylatex.utils import bold
 import pylatex.config as cf
 from os import listdir, remove, path
 import shutil
+from datetime import date
+import PySimpleGUI as sg
 
 notes = []
 file_name = "My Clippings.txt"
@@ -66,9 +66,11 @@ def find_notes_title(title):
 			print("\033[94m" + str(count) + '.',"Libro:",n.get("titulo"), "\u279c", n.get("autor").upper())	
 			print("\033[36m\u00ab", n.get("nota"),"\u00bb")
 
+
 def show_notes_key_word(word):
 	print("Buscar por palabra clave:",word.lower())
 	count = 0
+	msg = ""	
 	for n in notes:
 		tmp = n.get("nota").lower()
 		tmp = tmp.find(word.lower())
@@ -77,6 +79,8 @@ def show_notes_key_word(word):
 			print("\033[92m--------------------------------------")
 			print("\033[94m" + str(count) + '.',"Libro:",n.get("titulo"), "\u279c", n.get("autor").upper())	
 			print("\033[36m\u00ab", n.get("nota"),"\u00bb")
+			msg = msg + str(count) + '. ' + n.get("titulo").upper() + ' -> ' + n.get("autor").upper() + ': ' + '\n"'  + n.get("nota") + '"\n\n'
+	return msg
 
 def get_notes_key_word(word):
 	print("Buscar por palabra clave:",word.lower())
@@ -92,16 +96,16 @@ def get_notes_key_word(word):
 	return output_msg
 
 def latex_out(k_word, text):
-    escape = False
-    content_separator = "\n"
-    cf.active = cf.Version1(indent=False)
-    doc = Document()
-    doc.preamble.append(Command('title', 'Palabra clave: ' + k_word))
-    doc.preamble.append(Command('author', 'Autores varios'))
-    doc.preamble.append(Command('date', NoEscape(r'\today')))
-    doc.append(NoEscape(r'\maketitle'))
-    doc.append(NoEscape(text))
-    doc.generate_pdf(k_word, clean_tex=True)	        
+	escape = False
+	content_separator = "\n"
+	cf.active = cf.Version1(indent=False)
+	doc = Document()
+	doc.preamble.append(Command('title', 'Palabra clave: ' + k_word))
+	doc.preamble.append(Command('author', 'Autores Varios'))
+	doc.preamble.append(Command('date', str(date.today().day) + '-' + str(date.today().month) + '-' + str(date.today().year)))
+	doc.append(NoEscape(r'\maketitle'))
+	doc.append(NoEscape(text))
+	doc.generate_pdf(k_word, clean_tex=True)	        
 
 def books_dict():
 	unique = {}
@@ -130,64 +134,69 @@ def authors_list():
 
 file_read() # poblar diccionario con las notas del archivo kindle
 
-if (len(sys.argv) == 1):
-	print("solo indique un nombre de autor para la busqueda o bien:")
-	print("-b <libro> para libro especifico")
-	print("-n <palabra> para buscar notas por palabra clave")	
-	print("-a para una lista de autores")		
-	print("-l para una lista de libros")
-	print("-p <palabra_clave> en Beta")	
+# Define the window's contents
+layout = [  [sg.Text("Palabra clave?")],
+			[sg.Input(), sg.Button('Buscar')],
+			[sg.Button('Autores'), sg.Button('Libros'), sg.Button('PDF')],
+			
+		]
 
-else:
-	if (sys.argv[1] == '-l'):
-		count = 0
-		books_l = books_list()
-		books_l = list(books_l)
-		books_l.sort()
-		for b in books_l:
-			count += 1
-			print(count, b)
+# Create the window
+window = sg.Window('Kindle Notes Explorer', layout)
+												
+while True:
+	event, values = window.read()
+	#window['input'].bind("<Return>", "_Enter")	
 
-	elif (sys.argv[1] == '-a'):
+	if event == 'Autores':
 		count = 0
 		authors = authors_list()
 		authors = list(authors)
 		authors.sort()
+		text = ""
 		for a in authors:
 			count += 1			
-			print(count,a)		
+			print(count,a)
+			text = text + str(count) + '. ' + a + '\n' 
+		sg.PopupScrolled(text, size=(70,20), title='Autores')    
+	
+	elif event == 'Libros':
+		count = 0
+		books_l = books_list()
+		books_l = list(books_l)
+		books_l.sort()
+		text = ""
+		for b in books_l:
+			count += 1
+			print(count, b)
+			text =  text + str(count) + '. ' + b + '\n' 
+		sg.PopupScrolled(text, size=(100,20), title='Libros')
 
-	elif (sys.argv[1] == '-b'):
-		book_key = sys.argv[2]
-		find_notes_title(book_key)
+	elif event == 'Buscar':
+		large = len(values)
+		key_word = ''
+		for w in range(large):
+			key_word = key_word + values[w]
+		if key_word != "":		
+			text = show_notes_key_word(key_word)
+			if text != '':			
+				sg.PopupScrolled(text, size=(100,20), title=values[0])
 
-	elif (sys.argv[1] == '-n'):
-		key_word = sys.argv[2]
-		show_notes_key_word(key_word)
-
-	# crear archivo pdf para cada entrada con palabra clave
-	elif (sys.argv[1] == '-p'):
-		if len(sys.argv) == 3 and sys.argv[2] != '':
-			key_word = sys.argv[2]			
-			text = get_notes_key_word(key_word)
-			if (text !=''):
-				print("creando archivo -> " + key_word + ".pdf")
-				latex_out(key_word, text)
-				res = path.isfile('./pdf_output/' + key_word + '.pdf')
-				if res:
-					remove('./pdf_output/' + key_word + '.pdf')					
-				shutil.move(key_word + '.pdf','./pdf_output/')										
-			else:
-				print("palabra no encontrada")
+	elif event == 'PDF':
+		key_word = values[0]			
+		text = get_notes_key_word(key_word)
+		if (text !=''):
+			print("creando archivo -> " + key_word + ".pdf")
+			latex_out(key_word, text)
+			res = path.isfile('./pdf_output/' + key_word + '.pdf')
+			if res:
+				remove('./pdf_output/' + key_word + '.pdf')					
+			shutil.move(key_word + '.pdf','./pdf_output/')										
 		else:
-			print("indique palabra clave")
+			print("palabra no encontrada")
+	
 
-	elif sys.argv[1] == '-t': # funcíon en beta para probar busqueda de portadas
-		author = sys.argv[2]
-		book = sys.argv[3]
-		print(listdir(calibre_path + author + '/' + book))
-
-	else:
-		author_key = sys.argv[1]
-		find_notes_author(author_key)
-
+	if event in (sg.WIN_CLOSED, 'Cancel'):
+		break		
+		
+window.close()
