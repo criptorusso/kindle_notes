@@ -6,7 +6,7 @@ Debes indicar en el script el nombre de tu archivo de notas que tendrá que esta
 
 file_name = "My Clippings.txt"
 
-Ayuda rápida:	
+Para la opción por consola:	
 
 <li>solo indique un nombre de autor para la búsqueda o bien:
 <li>-b [libro] para libro especifico
