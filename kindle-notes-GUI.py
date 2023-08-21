@@ -72,14 +72,20 @@ def show_notes_key_word(word):
 	count = 0
 	msg = ""	
 	for n in notes:
-		tmp = n.get("nota").lower()
-		tmp = tmp.find(word.lower())
+		note = n.get("nota").lower()
+		tmp = note.find(word.lower())
 		if (tmp >= 0):
+			note_split = note.split(word)
+			word_count = len(note_split)
+			mark_words = ''
+			for w in range(0,word_count - 1):
+				mark_words = mark_words + note_split[w] + '[' + word + ']'
+			note = mark_words + note_split[word_count - 1]
 			count += 1	
 			print("\033[92m--------------------------------------")
 			print("\033[94m" + str(count) + '.',"Libro:",n.get("titulo"), "\u279c", n.get("autor").upper())	
-			print("\033[36m\u00ab", n.get("nota"),"\u00bb")
-			msg = msg + str(count) + '. ' + n.get("titulo").upper() + ' -> ' + n.get("autor").upper() + ': ' + '\n"'  + n.get("nota") + '"\n\n'
+			print("\033[36m\u00ab", note,"\u00bb")
+			msg = msg + str(count) + '. ' + n.get("titulo").upper() + ' -> ' + n.get("autor").upper() + ': ' + '\n"'  + note + '"\n\n'
 	return msg
 
 def get_notes_key_word(word):
@@ -138,7 +144,6 @@ file_read() # poblar diccionario con las notas del archivo kindle
 layout = [  [sg.Text("Palabra clave?")],
 			[sg.Input(), sg.Button('Buscar')],
 			[sg.Button('Autores'), sg.Button('Libros'), sg.Button('PDF')],
-			
 		]
 
 # Create the window
@@ -191,7 +196,8 @@ while True:
 			res = path.isfile('./pdf_output/' + key_word + '.pdf')
 			if res:
 				remove('./pdf_output/' + key_word + '.pdf')					
-			shutil.move(key_word + '.pdf','./pdf_output/')										
+			shutil.move(key_word + '.pdf','./pdf_output/')
+			print('archivo pdf creado')									
 		else:
 			print("palabra no encontrada")
 	
